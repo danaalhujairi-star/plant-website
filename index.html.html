@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رحلة النحلة وحبوب اللقاح - الصف الثالث الابتدائي</title>
+    <!-- تضمين Tailwind CSS للتصميم الجميل والمناسب للأطفال -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- تضمين Three.js للمشهد ثلاثي الأبعاد العالي الأداء -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe, #dcfce7);
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .kid-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col justify-between select-none">
+
+    <!-- رأس الصفحة التعليمي -->
+    <header class="bg-white/90 backdrop-blur-md shadow-md py-3 px-6 flex justify-between items-center z-20 border-b-4 border-emerald-400">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">🌱</span>
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-emerald-800">مختبر العلوم الصغير</h1>
+                <p class="text-xs md:text-sm text-emerald-600 font-bold">الصف الثالث الابتدائي - دورة حياة النبات وتلقيح الزهور</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="toggleInfoModal()" class="bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-4 py-2 rounded-full text-sm shadow-md transition transform hover:scale-105 flex items-center gap-1">
+                <span>💡</span> الشرح البسيط
+            </button>
+        </div>
+    </header>
+
+    <!-- منطقة عرض الرسم ثلاثي الأبعاد أو كاميرا الواقع المعزز -->
+    <main class="relative flex-1 w-full flex items-center justify-center overflow-hidden">
+        
+        <!-- عنصر الكاميرا للواقع المعزز (AR) -->
+        <video id="arCamera" autoplay playsinline class="absolute inset-0 w-full h-full object-cover hidden z-0"></video>
+
+        <!-- حاوية مشهد Three.js -->
+        <div id="canvasContainer" class="absolute inset-0 z-10 w-full h-full"></div>
+
+        <!-- شريط التوجيه والتنبيه التعليمي للأطفال -->
+        <div id="instructionBanner" class="absolute top-4 z-20 bg-emerald-700/90 text-white px-6 py-2 rounded-full font-bold text-sm md:text-base kid-shadow backdrop-blur-sm transition-all duration-300">
+            🌸 انقر على الأزرار في الأسفل لمشاهدة رحلة النحلة ونقل حبوب اللقاح!
+        </div>
+    </main>
+
+    <!-- شريط التحكم السفلي والأزرار التفاعلية -->
+    <footer class="bg-white/95 backdrop-blur-md shadow-lg py-4 px-6 z-20 flex flex-wrap justify-center items-center gap-3 md:gap-6 border-t-2 border-emerald-200">
+        
+        <button onclick="startBeeJourney()" class="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-black px-5 py-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-2 text-sm md:text-base border-b-4 border-amber-600">
+            <span class="text-xl">🐝</span> حركة النحلة وتلقيح الزهور
+        </button>
+
+        <button onclick="resetScene()" class="bg-gradient-to-r from-blue-400 to-cyan-500 hover:from-blue-500 hover:to-cyan-600 text-white font-black px-4 py-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-2 text-sm md:text-base border-b-4 border-blue-700">
+            <span class="text-xl">🔄</span> إعادة المشهد
+        </button>
+
+        <button onclick="toggleARMode()" id="arBtn" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-black px-5 py-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-2 text-sm md:text-base border-b-4 border-purple-800">
+            <span class="text-xl">📱</span> تشغيل الواقع المعزز (AR)
+        </button>
+
+        <button onclick="toggleVRMode()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black px-5 py-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-2 text-sm md:text-base border-b-4 border-emerald-800">
+            <span class="text-xl">🥽</span> وضع الواقع الافتراضي (VR)
+        </button>
+
+    </footer>
+
+    <!-- نافذة معلومات الشرح المبسط (Modal) -->
+    <div id="infoModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full kid-shadow border-4 border-emerald-400 relative">
+            <div class="text-center">
+                <span class="text-5xl mb-2 inline-block">🌻</span>
+                <h3 class="text-2xl font-black text-emerald-800 mb-3">كيف تتلقح النباتات؟</h3>
+                <p class="text-gray-700 text-sm md:text-base leading-relaxed mb-6 font-medium">
+                    1. تزور النحلة الزهرة الأولى لجمع الرحيق اللذيذ.<br>
+                    2. تعلق حبيبات اللقاح الصغيرة بجسم النحلة والفرو الخاص بها.<br>
+                    3. عندما تطير النحلة إلى الزهرة الثانية، تنتقل معها حبوب اللقاح!<br>
+                    4. هذا يساعد النبات على تكوين الثمار والبذور الجديدة ودورة حياة جديدة ومفيدة للطبيعة. 🌱
+                </p>
+                <button onclick="toggleInfoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-3 rounded-full shadow-lg transition transform hover:scale-105">
+                    فهمت الدرس! 🎉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- كود برمجة المشهد ثلاثي الأبعاد والواقع المعزز باستخدام Three.js -->
+    <script>
+        let scene, camera, renderer, bee, flower1, flower2, pollenGroup;
+        let isAnimating = false;
+        let animationProgress = 0;
+        let arActive = false;
+        let vrActive = false;
+        let videoElement = document.getElementById('arCamera');
+
+        function init3D() {
+            const container = document.getElementById('canvasContainer');
+
+            // 1. إنشاء المشهد
+            scene = new THREE.Scene();
+            scene.background = null; // شفاف لكي يعمل مع كاميرا الـ AR
+
+            // 2. الكاميرا
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 3, 7);
+            camera.lookAt(0, 1, 0);
+
+            // 3. المُصيِّر (Renderer)
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // 4. الإضاءة
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            scene.add(directionalLight);
+
+            // بناء العناصر النباتية والنحلة
+            createPlantEnvironment();
+
+            // حلقة التحديث المستمر
+            animate();
+
+            // الاستجابة لتغيير حجم النافذة
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // بناء الزهور والنحلة بأشكال واضحة ومبهجة
+        function createPlantEnvironment() {
+            // قاعدة أرضية خضراء لطيفة
+            const groundGeo = new THREE.CylinderGeometry(4, 4, 0.2, 32);
+            const groundMat = new THREE.MeshLambertMaterial({ color: 0x86efac });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.position.y = -0.1;
+            scene.add(ground);
+
+            // --- الزهرة الأولى (اليسار - مصدر الرحيق) ---
+            flower1 = createFlower(0xff6b81, 0xffeb3b);
+            flower1.position.set(-2.5, 0, 0);
+            scene.add(flower1);
+
+            // --- الزهرة الثانية (اليمين - مكان التلقيح) ---
+            flower2 = createFlower(0xa855f7, 0xfde047);
+            flower2.position.set(2.5, 0, 0);
+            scene.add(flower2);
+
+            // --- النحلة التفاعلية ---
+            bee = new THREE.Group();
+
+            // جسم النحلة الأساسي
+            const bodyGeo = new THREE.SphereGeometry(0.4, 16, 16);
+            bodyGeo.scale(1, 0.8, 1.4);
+            const bodyMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            bee.add(body);
+
+            // خطوط النحلة السوداء
+            const stripeGeo = new THREE.TorusGeometry(0.38, 0.05, 16, 100);
+            const stripeMat = new THREE.MeshLambertMaterial({ color: 0x1f2937 });
+            const stripe1 = new THREE.Mesh(stripeGeo, stripeMat);
+            stripe1.rotation.x = Math.PI / 2;
+            stripe1.position.z = 0.05;
+            bee.add(stripe1);
+
+            const stripe2 = stripe1.clone();
+            stripe2.position.z = -0.15;
+            bee.add(stripe2);
+
+            // رأس النحلة وعيونها
+            const headGeo = new THREE.SphereGeometry(0.25, 16, 16);
+            const headMat = new THREE.MeshLambertMaterial({ color: 0x374151 });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.set(0, 0, 0.5);
+            bee.add(head);
+
+            // أجنحة شفافة
+            const wingGeo = new THREE.BoxGeometry(0.5, 0.02, 0.3);
+            const wingMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 });
+            
+            const leftWing = new THREE.Mesh(wingGeo, wingMat);
+            leftWing.position.set(0.3, 0.3, 0);
+            leftWing.rotation.z = 0.2;
+            bee.add(leftWing);
+
+            const rightWing = new THREE.Mesh(wingGeo, wingMat);
+            rightWing.position.set(-0.3, 0.3, 0);
+            rightWing.rotation.z = -0.2;
+            bee.add(rightWing);
+
+            // جزيئات حبوب اللقاح المرتبطة بالنحلة
+            const pollenGeo = new THREE.SphereGeometry(0.08, 8, 8);
+            const pollenMat = new THREE.MeshLambertMaterial({ color: 0xfef08a });
+            pollenGroup = new THREE.Group();
+            for(let i=0; i<4; i++) {
+                const p = new THREE.Mesh(pollenGeo, pollenMat);
+                p.position.set((Math.random()-0.5)*0.3, -0.3 + (Math.random()-0.5)*0.2, (Math.random()-0.5)*0.3);
+                pollenGroup.add(p);
+            }
+            bee.add(pollenGroup);
+
+            bee.position.set(-2.5, 1.5, 0);
+            scene.add(bee);
+        }
+
+        // دالة مساعدة لإنشاء زهرة ملونة وجميلة
+        function createFlower(petalColor, centerColor) {
+            const flowerGroup = new THREE.Group();
+
+            // الساق الخضراء
+            const stemGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.8, 16);
+            const stemMat = new THREE.MeshLambertMaterial({ color: 0x22c55e });
+            const stem = new THREE.Mesh(stemGeo, stemMat);
+            stem.position.y = 0.9;
+            flowerGroup.add(stem);
+
+            // مركز الزهرة
+            const centerGeo = new THREE.SphereGeometry(0.25, 16, 16);
+            centerGeo.scale(1, 0.5, 1);
+            const centerMat = new THREE.MeshLambertMaterial({ color: centerColor });
+            const center = new THREE.Mesh(centerGeo, centerMat);
+            center.position.y = 1.8;
+            flowerGroup.add(center);
+
+            // بتلات الزهرة
+            const petalGeo = new THREE.SphereGeometry(0.25, 16, 16);
+            petalGeo.scale(0.8, 0.2, 1.2);
+            const petalMat = new THREE.MeshLambertMaterial({ color: petalColor });
+            
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 2 * Math.PI) / 5;
+                const petal = new THREE.Mesh(petalGeo, petalMat);
+                petal.position.x = Math.cos(angle) * 0.4;
+                petal.position.z = Math.sin(angle) * 0.4;
+                petal.position.y = 1.8;
+                petal.rotation.y = -angle;
+                flowerGroup.add(petal);
+            }
+
+            return flowerGroup;
+        }
+
+        // بدء رحلة النحلة بين الزهرتين لشرح انتقال حبوب اللقاح
+        function startBeeJourney() {
+            if (isAnimating) return;
+            isAnimating = true;
+            animationProgress = 0;
+            
+            const banner = document.getElementById('instructionBanner');
+            banner.innerText = "🐝 النحلة تجمع الرحيق وحبوب اللقاح من الزهرة الأولى وتطير نحو الثانية...";
+            banner.className = "absolute top-4 z-20 bg-amber-600 text-white px-6 py-2 rounded-full font-bold text-sm md:text-base kid-shadow transition-all duration-300";
+        }
+
+        function resetScene() {
+            isAnimating = false;
+            animationProgress = 0;
+            if (bee) {
+                bee.position.set(-2.5, 1.5, 0);
+                bee.rotation.set(0, 0, 0);
+            }
+            if (pollenGroup) pollenGroup.visible = true;
+            
+            const banner = document.getElementById('instructionBanner');
+            banner.innerText = "🌸 انقر على الأزرار في الأسفل لمشاهدة رحلة النحلة ونقل حبوب اللقاح!";
+            banner.className = "absolute top-4 z-20 bg-emerald-700/90 text-white px-6 py-2 rounded-full font-bold text-sm md:text-base kid-shadow backdrop-blur-sm transition-all duration-300";
+        }
+
+        // حلقة الرسم والتحديث
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // تحريك النحلة تدريجياً في حال تفعيل الرحلة
+            if (isAnimating) {
+                animationProgress += 0.008;
+                if (animationProgress > 1) animationProgress = 1;
+
+                // مسار منحني هادئ من اليسار (-2.5) إلى اليمين (2.5)
+                const startX = -2.5, endX = 2.5;
+                const currentX = startX + (endX - startX) * animationProgress;
+                
+                // مسار قوس أعلى قليلاً في منتصف الطيران
+                const currentY = 1.5 + Math.sin(animationProgress * Math.PI) * 1.2;
+                const currentZ = Math.sin(animationProgress * Math.PI * 2) * 0.3;
+
+                bee.position.set(currentX, currentY, currentZ);
+                
+                // دوران طفيف للجسم أثناء الطيران
+                bee.rotation.z = Math.sin(animationProgress * Math.PI * 6) * 0.1;
+                bee.rotation.y = (animationProgress < 0.5) ? 0.2 : -0.2;
+
+                if (animationProgress >= 1) {
+                    isAnimating = false;
+                    const banner = document.getElementById('instructionBanner');
+                    banner.innerText = "🎉 رائع! انتقلت حبوب اللقاح بنجاح إلى الزهرة الثانية لتكوين ثمرة جديدة!";
+                    banner.className = "absolute top-4 z-20 bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm md:text-base kid-shadow transition-all duration-300";
+                }
+            }
+
+            // حركة خفيفة نابضة للزهور
+            if (flower1 && flower2) {
+                const time = Date.now() * 0.002;
+                flower1.rotation.y = Math.sin(time) * 0.05;
+                flower2.rotation.y = Math.cos(time) * 0.05;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvasContainer');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // تشغيل الواقع المعزز (AR) عبر الكاميرا
+        async function toggleARMode() {
+            arActive = !arActive;
+            const arBtn = document.getElementById('arBtn');
+            
+            if (arActive) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    videoElement.srcObject = stream;
+                    videoElement.style.display = 'block';
+                    scene.background = null; // خلفية شفافة لتظهر الكاميرا تحت الـ 3D
+                    arBtn.innerHTML = '<span class="text-xl">❌</span> إيقاف الـ AR';
+                    arBtn.className = "bg-red-500 hover:bg-red-600 text-white font-black px-5 py-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-2 text-sm md:text-base border-b-4 border-red-700";
+                    
+                    const banner = document.getElementById('instructionBanner');
+                    banner.innerText = "📱 تم تفعيل كاميرا الواقع المعزز! وجه جهازك نحو الطاولة أو السطح.";
+                } catch (err) {
+                    alert('عذراً، تعذر الوصول إلى كاميرا الجهاز. يجدر التأكد من صلاحيات المتصفح.');
+                    arActive = false;
+                }
+            } else {
+                stopAR();
+            }
+        }
+
+        function stopAR() {
+            arActive = false;
+            if (videoElement.srcObject) {
+                let tracks = videoElement.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                videoElement.srcObject = null;
+            }
+            videoElement.style.display = 'none';
+            
+            const arBtn = document.getElementById('arBtn');
+            arBtn.innerHTML = '<span class="text-xl">📱</span> تشغيل الواقع المعزز (AR)';
+            arBtn.className = "bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-black px-5 py-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-2 text-sm md:text-base border-b-4 border-purple-800";
+        }
+
+        // وضع الواقع الافتراضي (VR) - شاشة مزدوجة مبسطة
+        function toggleVRMode() {
+            vrActive = !vrActive;
+            if (vrActive) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                }
+                camera.position.set(0, 2.5, 5);
+                const banner = document.getElementById('instructionBanner');
+                banner.innerText = "🥽 وضع الواقع الافتراضي مفعل. ضع هاتفك داخل نظارة الكاردبورد للاستمتع بالتجربة الغامرة!";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                camera.position.set(0, 3, 7);
+            }
+        }
+
+        function toggleInfoModal() {
+            const modal = document.getElementById('infoModal');
+            modal.classList.toggle('hidden');
+        }
+
+        // بدء المشهد عند تحميل الصفحة
+        window.onload = function() {
+            init3D();
+        };
+    </script>
+</body>
+</html>
